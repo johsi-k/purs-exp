@@ -18,6 +18,7 @@ to generate this file without the comments in this block.
   , "console"
   , "effect"
   , "either"
+  , "maybe"
   , "node-buffer"
   , "node-fs"
   , "prelude"

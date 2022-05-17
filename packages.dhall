@@ -103,3 +103,50 @@ let upstream =
         sha256:0b0d4db1f2f0acd3b37fa53220644ac6f64cf9b5d0226fd097c0593df563d5be
 
 in  upstream
+
+{-
+
+  with foreign-generic =
+      { dependencies =
+          [ "effect"
+          , "foreign"
+          , "foreign-object"
+          , "ordered-collections"
+          , "exceptions"
+          , "record"
+          , "identity"
+          ]
+       , repo =
+           "https://github.com/paf31/purescript-foreign-generic"
+       , version =
+           "v11.0.0"  -- branch, tag, or commit hash
+       }
+
+
+  with argonaut-aeson-generic =
+      { dependencies =
+          [ "argonaut-codecs"
+          , "argonaut-core"
+          , "argonaut-generic"
+          , "arrays"
+          , "bifunctors"
+          , "control"
+          , "effect"
+          , "either"
+          , "foldable-traversable"
+          , "foreign-object"
+          , "maybe"
+          , "partial"
+          , "prelude"
+          , "psci-support"
+          , "record"
+          , "test-unit"
+          , "typelevel-prelude"
+          ]
+      , repo =
+          "https://github.com/peterbecich/purescript-argonaut-aeson-generic"
+      , version =
+          "purescript-0.14"  -- branch, tag, or commit hash
+      }
+
+-}
