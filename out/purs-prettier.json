@@ -1,0 +1,43 @@
+{
+  "contents": {
+    "itemsAll": [
+      {
+        "contents": {
+          "contents": [
+            "a"
+          ],
+          "tag": "RPMT"
+        },
+        "tag": "Leaf"
+      },
+      {
+        "contents": {
+          "itemsAny": [
+            {
+              "contents": {
+                "contents": [
+                  "b"
+                ],
+                "tag": "RPMT"
+              },
+              "tag": "Leaf"
+            },
+            {
+              "contents": {
+                "contents": [
+                  "c"
+                ],
+                "tag": "RPMT"
+              },
+              "tag": "Leaf"
+            }
+          ],
+          "itemLbl": null
+        },
+        "tag": "Any"
+      }
+    ],
+    "itemLbl": null
+  },
+  "tag": "All"
+}

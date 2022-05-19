@@ -18,10 +18,13 @@ to generate this file without the comments in this block.
   , "console"
   , "effect"
   , "either"
+  , "lists"
   , "maybe"
+  , "newtype"
   , "node-buffer"
   , "node-fs"
   , "prelude"
+  , "tuples"
   , "unsafe-coerce"
   ]
 , packages = ./packages.dhall
