@@ -5,9 +5,9 @@ module LS.Types
 import Prelude
 
 import AnyAll.Types (Item', Label, aesonEncoding)
-import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Decode.Class (class DecodeJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJsonWith)
-import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJsonWith)
 import Data.Generic.Rep (class Generic)
 import Data.List.NonEmpty (NonEmptyList)

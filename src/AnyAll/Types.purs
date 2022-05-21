@@ -4,9 +4,9 @@ module AnyAll.Types
 
 import Prelude
 
-import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Decode.Class (class DecodeJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJsonWith)
-import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJsonWith)
 import Data.Argonaut.Types.Generic as Gen
 import Data.Generic.Rep (class Generic)
@@ -16,16 +16,9 @@ import Prim (Array)
 
 data Item' a b =
     Leaf b
-  | All {
-      itemLbl :: Maybe a
-    , itemsAll :: Array (Item' a b)
-    }
-  | Any {
-      itemLbl :: Maybe a
-    , itemsAny :: Array (Item' a b)
-    }
+  | All (Maybe a) (Array (Item' a b))
+  | Any (Maybe a) (Array (Item' a b))
   | Not (Item' a b)
-
 
 
 -- does not work
