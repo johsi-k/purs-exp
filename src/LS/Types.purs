@@ -4,17 +4,19 @@ module LS.Types
 
 import Prelude
 
-import AnyAll.Types (Item', Label, aesonEncoding)
-import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
-import Data.Argonaut.Decode.Generic (genericDecodeJsonWith)
-import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
-import Data.Argonaut.Encode.Generic (genericEncodeJsonWith)
+import AnyAll.Types (Item', Label)
+import Data.Argonaut.Decode.Class (class DecodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Generic.Rep (class Generic)
 import Data.List.NonEmpty (NonEmptyList)
 import Data.Maybe (Maybe)
 import Data.Show.Generic (genericShow)
 import Data.Tuple (Tuple)
 import Prim (Array, String)
+
+import Data.Argonaut.Aeson.Decode.Generic (genericDecodeAeson)
+import Data.Argonaut.Aeson.Encode.Generic (genericEncodeAeson)
+import Data.Argonaut.Aeson.Options (defaultOptions)
 
 data RelationalPredicate =
     RPParamText (NonEmptyList (Tuple (NonEmptyList String) (Maybe TypeSig)))
@@ -27,11 +29,10 @@ derive instance genericRelationalPredicate :: Generic RelationalPredicate _
 instance showRP :: Show RelationalPredicate where
   show a = genericShow a
 
--- from docs: instances for a recursive type cannot be written in point-free style, as that would likely cause a stack overflow during execution
 instance encodeJsonRP :: EncodeJson RelationalPredicate where
-  encodeJson a = genericEncodeJsonWith aesonEncoding a
+  encodeJson a = genericEncodeAeson defaultOptions a
 instance decodeJsonRP :: DecodeJson RelationalPredicate where
-  decodeJson a = genericDecodeJsonWith aesonEncoding a
+  decodeJson a = genericDecodeAeson defaultOptions a
 
 
 data TypeSig =
@@ -44,9 +45,9 @@ instance showTypeSig :: Show TypeSig where
   show a = genericShow a
 
 instance encodeJsonTypeSig :: EncodeJson TypeSig where
-  encodeJson a = genericEncodeJsonWith aesonEncoding a
+  encodeJson a = genericEncodeAeson defaultOptions a
 instance decodeJsonTypeSig :: DecodeJson TypeSig where
-  decodeJson a = genericDecodeJsonWith aesonEncoding a
+  decodeJson a = genericDecodeAeson defaultOptions a
 
 
 data RPRel =
@@ -65,9 +66,9 @@ instance showRPRel :: Show RPRel where
  show = genericShow
 
 instance encodeJsonRPRel :: EncodeJson RPRel where
-  encodeJson = genericEncodeJsonWith aesonEncoding
+  encodeJson = genericEncodeAeson defaultOptions
 instance decodeJsonRPRel :: DecodeJson RPRel where
-  decodeJson = genericDecodeJsonWith aesonEncoding
+  decodeJson = genericDecodeAeson defaultOptions
 
 
 data ParamType =
@@ -82,6 +83,6 @@ instance showParamType :: Show ParamType where
   show = genericShow
 
 instance encodeJsonParamType :: EncodeJson ParamType where
-  encodeJson = genericEncodeJsonWith aesonEncoding
+  encodeJson = genericEncodeAeson defaultOptions
 instance decodeJsonParamType :: DecodeJson ParamType where
-  decodeJson = genericDecodeJsonWith aesonEncoding
+  decodeJson = genericDecodeAeson defaultOptions

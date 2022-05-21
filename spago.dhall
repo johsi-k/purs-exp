@@ -15,6 +15,7 @@ to generate this file without the comments in this block.
   [ "argonaut-codecs"
   , "argonaut-core"
   , "argonaut-generic"
+  , "argonaut-aeson-generic"
   , "console"
   , "effect"
   , "either"

@@ -104,7 +104,7 @@ let upstream =
 
 in  upstream
 
-{-
+-- {-
 
   with foreign-generic =
       { dependencies =
@@ -144,9 +144,9 @@ in  upstream
           , "typelevel-prelude"
           ]
       , repo =
-          "https://github.com/peterbecich/purescript-argonaut-aeson-generic"
+          "https://github.com/johsi-k/purescript-argonaut-aeson-generic"
       , version =
-          "purescript-0.14"  -- branch, tag, or commit hash
+          "purescript-0.15"  -- branch, tag, or commit hash
       }
 
--}
+-- -}
