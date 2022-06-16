@@ -1,0 +1,28 @@
+{
+    "contents": [
+        "",
+        [
+            {
+                "contents": "a",
+                "tag": "BELeaf"
+            },
+            {
+                "contents": [
+                    "",
+                    [
+                        {
+                            "contents": "b",
+                            "tag": "BELeaf"
+                        },
+                        {
+                            "contents": "c",
+                            "tag": "BELeaf"
+                        }
+                    ]
+                ],
+                "tag": "BEAny"
+            }
+        ]
+    ],
+    "tag": "BEAll"
+}

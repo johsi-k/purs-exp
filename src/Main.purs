@@ -1,14 +1,4 @@
 module Main
-  ( Item(..)
-  , Label(..)
-  , RPMT(..)
-  , aesonEncoding
-  , example
-  , itemToJson
-  , labelFromJson
-  , labelToJson
-  , main
-  )
   where
 
 import Prelude
@@ -21,7 +11,7 @@ import Data.Argonaut.Decode.Parser (parseJson)
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJsonWith)
 import Data.Argonaut.Types.Generic as Gen
-import Data.Either (Either(..))
+import Data.Either (Either(..), fromRight)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
 import Data.Show.Generic (genericShow)
@@ -32,10 +22,30 @@ import Node.FS.Sync (readTextFile)
 
 -- import Unsafe.Coerce (unsafeCoerce)
 
+
+-- BinExpr type and instances
+data BinExpr a b =
+    BELeaf a
+  | BEAll b (Array (BinExpr a b))
+  | BEAny b (Array (BinExpr a b))
+  | BENot (BinExpr a b)
+
+derive instance eqBinExpr :: (Eq a, Eq b) => Eq (BinExpr a b)
+derive instance genericBinExpr :: Generic (BinExpr a b) _
+instance showBinExpr :: (Show a, Show b) => Show (BinExpr a b) where
+  show eta = genericShow eta
+
+instance encodeJsonBinExpr :: (EncodeJson a, EncodeJson b) => EncodeJson (BinExpr a b) where
+  encodeJson a = genericEncodeJsonWith aesonEncoding a
+instance decodeJsonBinExpr :: (DecodeJson a, DecodeJson b) => DecodeJson (BinExpr a b) where
+  decodeJson a = genericDecodeJsonWith aesonEncoding a
+
+
 -- Item type and instances
+-- Maybe (Label a) has been changed to (Label a) for compatiblity with vue-pure-pdpa
 data Item a = Leaf a
-            | All (Maybe (Label a)) (Array (Item a))
-            | Any (Maybe (Label a)) (Array (Item a))
+            | All (Label a) (Array (Item a))
+            | Any (Label a) (Array (Item a))
             | Not (Item a)
 
 derive instance eqItem :: (Eq a) => Eq (Item a)
@@ -66,21 +76,6 @@ instance decodeJsonLabel :: DecodeJson a => DecodeJson (Label a) where
   decodeJson a = genericDecodeJsonWith aesonEncoding a
 
 
--- RPMT type and instances
-data RPMT = RPMT (Array String)
-          | RPMTDummy
-
-derive instance eqRPMT :: Eq RPMT
-derive instance genericRPMT :: Generic RPMT _
-instance showRPMT :: Show RPMT where
-  show = genericShow
-
-instance encodeJsonRPMT :: EncodeJson RPMT where
-  encodeJson = genericEncodeJsonWith aesonEncoding
-instance decodeJsonRPMT :: DecodeJson RPMT where
-  decodeJson = genericDecodeJsonWith aesonEncoding
-
-
 -- modified default encoding for aeson compatibility
 aesonEncoding :: Gen.Encoding
 aesonEncoding =
@@ -90,66 +85,71 @@ aesonEncoding =
   }
 
 
--- toy items
-example :: Item RPMT
-example =  All Nothing
-           [ Leaf ( RPMT [ "a" ] )
-           , Any Nothing
-             [ Leaf ( RPMT [ "b" ] )
-             , Leaf ( RPMT [ "c" ] )
+-- toy example
+exampleBinExpr :: BinExpr String String
+exampleBinExpr =  BEAll ""
+           [ BELeaf "a"
+           , BEAny ""
+             [ BELeaf "b"
+             , BELeaf "c"
              ]
            ]
 
--- examplenot :: Item RPMT
--- examplenot =  All Nothing
---               [ Leaf ( RPMT [ "a" ] )
---               , Any Nothing
---                 [ Leaf ( RPMT [ "b" ] )
---                 , Not
---                   ( Leaf ( RPMT [ "c" ] )
---                   )
---                 ]
---               ]
+
+-- labelToJson :: Label String -> Json
+-- labelToJson = encodeJson
+
+-- labelFromJson :: Json -> Either JsonDecodeError (Label String)
+-- labelFromJson = decodeJson
+
+-- itemToJson :: Item String -> Json
+-- itemToJson = encodeJson
+
+-- itemFromJson :: Json -> Either JsonDecodeError (Item String)
+-- -- itemFromJson = unsafeCoerce unit :: forall a. a
+-- itemFromJson = decodeJson
 
 
-labelToJson :: Label String -> Json
-labelToJson = encodeJson
+binExprToJson :: BinExpr String String -> Json
+binExprToJson = encodeJson
 
-labelFromJson :: Json -> Either JsonDecodeError (Label String)
-labelFromJson = decodeJson
+binExprFromJson :: Json -> Either JsonDecodeError (BinExpr String String)
+binExprFromJson = decodeJson
 
-itemToJson :: Item RPMT -> Json
-itemToJson = encodeJson
-
-itemFromJson :: Json -> Either JsonDecodeError (Item RPMT)
--- itemFromJson = unsafeCoerce unit :: forall a. a
-itemFromJson = decodeJson
+binExprToItem :: BinExpr String String -> Item String
+binExprToItem (BELeaf a) = Leaf a
+binExprToItem (BEAll a binexprs) = All (Pre a) (map binExprToItem binexprs)
+binExprToItem (BEAny a binexprs) = Any (Pre a) (map binExprToItem binexprs)
+binExprToItem (BENot binexpr) = Not (binExprToItem binexpr)
 
 
 main :: Effect Unit
 main = do
-  let fp = "/Users/johsi/purs-exp/src/input.json"
+  let fp = "/Users/johsi/purs-exp/src/binexpr-hask.json"
 
   str <- readTextFile UTF8 fp
-  let decoded = itemFromJson =<< parseJson str
-  log $ show decoded
+  let decoded = binExprFromJson =<< parseJson str
+  let be = fromRight (BELeaf "") decoded
 
-  -- log $ show $ decoded == Right example
+  log $ show $ binExprToItem be
+  -- (All (Pre "") [(Leaf "a"),(Any (Pre "") [(Leaf "b"),(Leaf "c")])])
+
+  -- log $ show $ decoded == Right exampleBinExpr
 
   -- toy example to JSON
-  -- log $ stringify $ itemToJson example
+  -- log $ stringify $ binExprToJson exampleBinExpr
 
   -- round trip with toy example
-  -- let str = stringify $ itemToJson $ example
-  -- log $ show $ itemFromJson =<< parseJson str
+  -- let str = stringify $ binExprToJson $ exampleBinExpr
+  -- log $ show $ binExprFromJson =<< parseJson str
 
 -- type reference
 -- log :: String -> Effect Unit
 -- readTextFile :: Encoding -> FilePath -> Effect String
 
 -- parseJson :: String -> Either JsonDecodeError Json
--- itemFromJson :: Json -> Either JsonDecodeError (Item RPMT)
+-- binExprFromJson :: Json -> Either JsonDecodeError (BinExpr String String)
 -- =<< :: (a -> m b) -> m a -> m b
--- =<< :: (Json -> Either JsonDecodeError (Item RPMT))
+-- =<< :: (Json -> Either JsonDecodeError (BinExpr String String))
 --     -> Either JsonDecodeError Json
---     -> Either JsonDecodeError (Item RPMT)
+--     -> Either JsonDecodeError (BinExpr String String)
