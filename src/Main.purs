@@ -23,46 +23,31 @@ import Node.FS.Sync (readTextFile)
 -- import Unsafe.Coerce (unsafeCoerce)
 
 
--- BinExpr type and instances
-data BinExpr a b =
-    BELeaf a
-  | BEAll b (Array (BinExpr a b))
-  | BEAny b (Array (BinExpr a b))
-  | BENot (BinExpr a b)
-
-derive instance eqBinExpr :: (Eq a, Eq b) => Eq (BinExpr a b)
-derive instance genericBinExpr :: Generic (BinExpr a b) _
-instance showBinExpr :: (Show a, Show b) => Show (BinExpr a b) where
-  show eta = genericShow eta
-
-instance encodeJsonBinExpr :: (EncodeJson a, EncodeJson b) => EncodeJson (BinExpr a b) where
-  encodeJson a = genericEncodeJsonWith aesonEncoding a
-instance decodeJsonBinExpr :: (DecodeJson a, DecodeJson b) => DecodeJson (BinExpr a b) where
-  decodeJson a = genericDecodeJsonWith aesonEncoding a
-
-
 -- Item type and instances
--- Maybe (Label a) has been changed to (Label a) for compatiblity with vue-pure-pdpa
-data Item a = Leaf a
-            | All (Label a) (Array (Item a))
-            | Any (Label a) (Array (Item a))
-            | Not (Item a)
+data Item lbl a
+  = Leaf a
+  | All lbl (Array (Item lbl a))
+  | Any lbl (Array (Item lbl a))
+  | Not (Item lbl a)
 
-derive instance eqItem :: (Eq a) => Eq (Item a)
-derive instance genericItem :: Generic (Item a) _
+type ItemJSONStr = Item (Label String) String
 
-instance showItem :: (Show a) => Show (Item a) where
+derive instance eqItem :: (Eq lbl, Eq a) => Eq (Item lbl a)
+derive instance genericItem :: Generic (Item lbl a) _
+
+instance showItem :: (Show lbl, Show a) => Show (Item lbl a) where
   show eta = genericShow eta
 
-instance encodeJsonItem :: EncodeJson a => EncodeJson (Item a) where
+instance encodeJsonItem :: (EncodeJson lbl, EncodeJson a) => EncodeJson (Item lbl a) where
   encodeJson a = genericEncodeJsonWith aesonEncoding a
-instance decodeJsonItem :: DecodeJson a => DecodeJson (Item a) where
+instance decodeJsonItem :: (DecodeJson lbl, DecodeJson a) => DecodeJson (Item lbl a) where
   decodeJson a = genericDecodeJsonWith aesonEncoding a
 
 
 -- Label type and instances
-data Label a = Pre a
-             | PrePost a a
+data Label a
+  = Pre a
+  | PrePost a a
 
 derive instance eqLabel :: (Eq a) => Eq (Label a)
 derive instance genericLabel :: Generic (Label a) _
@@ -86,14 +71,17 @@ aesonEncoding =
 
 
 -- toy example
-exampleBinExpr :: BinExpr String String
-exampleBinExpr =  BEAll ""
-           [ BELeaf "a"
-           , BEAny ""
-             [ BELeaf "b"
-             , BELeaf "c"
-             ]
-           ]
+inline1m :: ItemJSONStr
+inline1m
+  = Any
+  ( PrePost "any unauthorised" "of personal data" )
+  [ Leaf "access"
+  , Leaf "use"
+  , Leaf "disclosure"
+  , Leaf "copying"
+  , Leaf "modification"
+  , Leaf "disposal"
+  ]
 
 
 -- labelToJson :: Label String -> Json
@@ -109,47 +97,34 @@ exampleBinExpr =  BEAll ""
 -- -- itemFromJson = unsafeCoerce unit :: forall a. a
 -- itemFromJson = decodeJson
 
-
-binExprToJson :: BinExpr String String -> Json
-binExprToJson = encodeJson
-
-binExprFromJson :: Json -> Either JsonDecodeError (BinExpr String String)
-binExprFromJson = decodeJson
-
-binExprToItem :: BinExpr String String -> Item String
-binExprToItem (BELeaf a) = Leaf a
-binExprToItem (BEAll a binexprs) = All (Pre a) (map binExprToItem binexprs)
-binExprToItem (BEAny a binexprs) = Any (Pre a) (map binExprToItem binexprs)
-binExprToItem (BENot binexpr) = Not (binExprToItem binexpr)
+itemFromJson :: Json -> Either JsonDecodeError ItemJSONStr
+itemFromJson = decodeJson
 
 
 main :: Effect Unit
 main = do
-  let fp = "/Users/johsi/purs-exp/src/binexpr-hask.json"
+  let fp = "/Users/johsi/purs-exp/src/inline1m-hask.json"
 
   str <- readTextFile UTF8 fp
-  let decoded = binExprFromJson =<< parseJson str
-  let be = fromRight (BELeaf "") decoded
+  let decoded = itemFromJson =<< parseJson str
+  log $ show decoded
 
-  log $ show $ binExprToItem be
-  -- (All (Pre "") [(Leaf "a"),(Any (Pre "") [(Leaf "b"),(Leaf "c")])])
-
-  -- log $ show $ decoded == Right exampleBinExpr
+  -- log $ show $ decoded == Right inline1m
 
   -- toy example to JSON
-  -- log $ stringify $ binExprToJson exampleBinExpr
+  -- log $ stringify $ itemToJson inline1m
 
   -- round trip with toy example
-  -- let str = stringify $ binExprToJson $ exampleBinExpr
-  -- log $ show $ binExprFromJson =<< parseJson str
+  -- let str = stringify $ itemToJson $ inline1m
+  -- log $ show $ itemFromJson =<< parseJson str
 
 -- type reference
 -- log :: String -> Effect Unit
 -- readTextFile :: Encoding -> FilePath -> Effect String
 
 -- parseJson :: String -> Either JsonDecodeError Json
--- binExprFromJson :: Json -> Either JsonDecodeError (BinExpr String String)
+-- itemFromJson :: Json -> Either JsonDecodeError ItemJSONStr
 -- =<< :: (a -> m b) -> m a -> m b
--- =<< :: (Json -> Either JsonDecodeError (BinExpr String String))
+-- =<< :: (Json -> Either JsonDecodeError ItemJSONStr)
 --     -> Either JsonDecodeError Json
---     -> Either JsonDecodeError (BinExpr String String)
+--     -> Either JsonDecodeError ItemJSONStr
